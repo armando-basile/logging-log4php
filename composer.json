@@ -1,5 +1,5 @@
 {
-    "name": "apache/log4php",
+    "name": "armandob/log4php",
     "description": "A versatile logging framework for PHP",
     "keywords": ["log", "logging", "php"],
     "homepage": "http://logging.apache.org/log4php/",
