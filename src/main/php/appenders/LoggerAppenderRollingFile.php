@@ -195,6 +195,8 @@ class LoggerAppenderRollingFile extends LoggerAppenderFile {
 	 * @param string $string Data to write.
 	 */
 	protected function write($string) {
+		$string = (!$string ? '' : $string);
+
 		// Lazy file open
 		if(!isset($this->fp)) {
 			if ($this->openFile() === false) {
