@@ -2,6 +2,43 @@
 
 /**
  * Appender to send log messages using Graylog with GELF TCP.
+ * 
+ * sample log4php.xml that implement RollingFile and Gelf (Graylog) appenders
+ * 
+ * <?xml version="1.0" encoding="UTF-8" ?>
+ * <configuration xmlns="http://logging.apache.org/log4php/">
+ * 
+ *     <appender name="RollingFile" class="LoggerAppenderRollingFile">
+ *         <layout class="LoggerLayoutPattern">
+ *             <param name="conversionPattern" value="%date{Y-m-d H:i:s,u} %-5level %logger (line:%line) %msg%n%exception" />
+ *         </layout>
+ *         <param name="file" value="logs/myApp.log" />
+ *         <param name="maxFileSize" value="5MB" />
+ *         <param name="maxBackupIndex" value="5" />
+ *     </appender>
+ * 
+ *     <appender name="Graylog" class="LoggerAppenderGelf">
+ *         <param name="host" value="192.168.1.100" />
+ *         <param name="port" value="12201" />
+ *         <param name="facility" value="myApplicationName" />
+ *     </appender>
+ * 
+ *     <root>
+ *         <level value="DEBUG" />
+ *         <appender_ref ref="RollingFile" />
+ *         <appender_ref ref="Graylog" />
+ *     </root>
+ * 
+ * </configuration>
+ * 
+ * Add into index.php to log also client ip address and user logged
+ * 
+ * if (isset($_SESSION['user_id'])) {
+ *     LoggerMDC::put('logged_user', $_SESSION['user_id']);
+ * }
+ * 
+ * LoggerMDC::put('client_ip', $_SERVER['REMOTE_ADDR']);
+ * 
  */
 class LoggerAppenderGelf extends LoggerAppender {
 
@@ -62,9 +99,18 @@ class LoggerAppenderGelf extends LoggerAppender {
             '_logger'       => $event->getLoggerName(),
         ];
         
+        // check for client ip
         $clientIp = LoggerMDC::get('client_ip');
         if ($clientIp) {
+            // save also client_ip info
             $message['_client_ip'] = $clientIp;
+        }
+
+        // check for logged user
+        $logged_user = LoggerMDC::get('logged_user');
+        if ($logged_user) {
+            // save also logged_user info
+            $message['logged_user'] = $logged_user;
         }
 
         $json = json_encode($message);
