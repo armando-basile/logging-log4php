@@ -103,9 +103,9 @@ class LoggerAppenderGelf extends LoggerAppender {
             'short_message' => $shortMessage,
             'full_message'  => $fullMessage,
             'timestamp'     => microtime(true),
-            'level'         => $this->mapLevel($event->getLevel()->toInt()),
             'facility'      => $this->facility,
-            '_application'   => $this->application,
+            'application'   => $this->application,
+            '_severity'     => $this->mapLevel($event->getLevel()->toInt()),
             '_logger'       => $event->getLoggerName(),
         ];
         
