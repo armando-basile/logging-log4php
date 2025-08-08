@@ -45,6 +45,7 @@ class LoggerAppenderGelf extends LoggerAppender {
     protected $host = '127.0.0.1';
     protected $port = 12201;
     protected $facility = 'log4php';
+    protected $application = 'myApp';
 
     private $socket;
     private $isConnected = false;
@@ -88,17 +89,27 @@ class LoggerAppenderGelf extends LoggerAppender {
             }
         }
 
+        $fullMessage = $event->getRenderedMessage();
+        $shortMessage = $fullMessage;
+
+        if (strlen($shortMessage) > 250) {
+            $shortMessage = substr($shortMessage, 0, 247) . '...';
+        }
+
         $message = [
             'version'       => '1.1',
             'host'          => gethostname(),
-            'short_message' => 'Log ' . $this->mapLevel($event->getLevel()->toInt()),
-            'full_message'  => $event->getRenderedMessage(),
+            'short_message' => $shortMessage,
+            'full_message'  => $fullMessage,
             'timestamp'     => microtime(true),
             'level'         => $this->mapLevel($event->getLevel()->toInt()),
             'facility'      => $this->facility,
+            '_application'   => $this->application,
             '_logger'       => $event->getLoggerName(),
         ];
         
+        
+
         // check for client ip
         $clientIp = LoggerMDC::get('client_ip');
         if ($clientIp) {
@@ -110,7 +121,7 @@ class LoggerAppenderGelf extends LoggerAppender {
         $logged_user = LoggerMDC::get('logged_user');
         if ($logged_user) {
             // save also logged_user info
-            $message['logged_user'] = $logged_user;
+            $message['_logged_user'] = $logged_user;
         }
 
         $json = json_encode($message);
@@ -150,5 +161,6 @@ class LoggerAppenderGelf extends LoggerAppender {
     public function setHost($host) { $this->host = $host; }
     public function setPort($port) { $this->port = (int)$port; }
     public function setFacility($facility) { $this->facility = $facility; }
+    public function setApplication($application) { $this->application = $application; }
     
 }
