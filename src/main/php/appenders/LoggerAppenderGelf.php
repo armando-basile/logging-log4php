@@ -20,7 +20,8 @@
  *     <appender name="Graylog" class="LoggerAppenderGelf">
  *         <param name="host" value="192.168.1.100" />
  *         <param name="port" value="12201" />
- *         <param name="facility" value="myApplicationName" />
+ *         <param name="facility" value="myFacilityName" />
+ *         <param name="application" value="myApplicationName" />
  *     </appender>
  * 
  *     <root>
