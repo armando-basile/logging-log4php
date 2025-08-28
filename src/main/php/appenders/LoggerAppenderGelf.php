@@ -98,13 +98,13 @@ class LoggerAppenderGelf extends LoggerAppender {
         }
 
         $message = [
-            'version'       => '1.1',
-            'host'          => gethostname(),
+            'version'       => '1.1',            
             'short_message' => $shortMessage,
             'full_message'  => $fullMessage,
             'timestamp'     => microtime(true),
             'facility'      => $this->facility,
             'application'   => $this->application,
+            '_source'       => gethostname(),
             '_severity'     => $this->mapLevel($event->getLevel()->toInt()),
             '_logger'       => $event->getLoggerName(),
         ];
