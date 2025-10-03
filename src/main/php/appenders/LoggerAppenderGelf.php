@@ -52,43 +52,9 @@ class LoggerAppenderGelf extends LoggerAppender {
     private $isConnected = false;
 
     public function activateOptions() {
-        $this->connect();
-    }
-
-    private function connect() {
-
-        $this->close(); // Chiudi eventuali connessioni precedenti
-
-        $this->socket = @stream_socket_client(
-            "tcp://{$this->host}:{$this->port}",
-            $errno,
-            $errstr,
-            2, // timeout di connessione in secondi
-            STREAM_CLIENT_CONNECT
-        );
-
-        if ($this->socket === false) {
-
-            $this->isConnected = false;
-            $this->warn("Can not connect to Graylog ({$this->host}:{$this->port}): $errstr ($errno)");
-
-        } else {
-
-            stream_set_timeout($this->socket, 2); // timeout di scrittura/lettura
-            $this->isConnected = true;
-
-        }
     }
 
     public function append(LoggerLoggingEvent $event) {
-
-        if (!$this->isConnected) {
-            $this->connect();
-            if (!$this->isConnected) {
-                // Se ancora non connesso, scarta il log
-                return;
-            }
-        }
 
         $fullMessage = $event->getRenderedMessage();
         $shortMessage = $fullMessage;
@@ -127,24 +93,29 @@ class LoggerAppenderGelf extends LoggerAppender {
 
         $json = json_encode($message);
 
-        // GELF TCP richiede un carattere null (\0) come terminatore di messaggio
-        $json .= "\0";
+        $url = "http://{$this->host}:{$this->port}/gelf";
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($json)
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
 
-        $bytesWritten = @fwrite($this->socket, $json);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-        if ($bytesWritten === false || $bytesWritten < strlen($json)) {
-            $this->warn("Error on send message GELF to Graylog. Retry to connect...");
-            $this->connect();
+        if ($err || $httpCode >= 400) {
+            $this->warn("Error sending GELF HTTP to Graylog: $err (HTTP $httpCode)");
         }
     }
 
     public function close() {
 
-        if (is_resource($this->socket)) {
-            @fclose($this->socket);
-        }
-
-        $this->isConnected = false;
     }
 
     private function mapLevel($level) {
