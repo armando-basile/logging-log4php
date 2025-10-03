@@ -121,12 +121,12 @@ class LoggerAppenderGelf extends LoggerAppender {
     private function mapLevel($level) {
 
         switch ($level) {
-            case LoggerLevel::FATAL: return 2; // Critical
-            case LoggerLevel::ERROR: return 3; // Error
-            case LoggerLevel::WARN:  return 4; // Warning
-            case LoggerLevel::INFO:  return 6; // Informational
-            case LoggerLevel::DEBUG: return 7; // Debug
-            default:                 return 1; // Alert
+            case LoggerLevel::FATAL: return "Fatal"; // 2
+            case LoggerLevel::ERROR: return "Error"; // 3
+            case LoggerLevel::WARN:  return "Warning"; // 4
+            case LoggerLevel::INFO:  return "Info"; // 6
+            case LoggerLevel::DEBUG: return "Debug"; // 7
+            default:                 return "Alert"; // 1
         }
     }
 
